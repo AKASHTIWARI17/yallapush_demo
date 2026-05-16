@@ -1,0 +1,1012 @@
+<!DOCTYPE html>
+<html lang="hi">
+<head>
+<meta charset="UTF-8"/>
+<meta name="viewport" content="width=device-width, initial-scale=1.0, maximum-scale=1.0"/>
+<title>YallaPush — WhatsApp Restaurant AI Demo</title>
+<link rel="preconnect" href="https://fonts.googleapis.com"/>
+<link href="https://fonts.googleapis.com/css2?family=Noto+Sans+Devanagari:wght@400;500;600;700&family=DM+Sans:opsz,wght@9..40,400;9..40,500;9..40,600;9..40,700&family=Playfair+Display:wght@600;700&display=swap" rel="stylesheet"/>
+<style>
+/* ═══════════════ RESET ═══════════════ */
+*,*::before,*::after{box-sizing:border-box;margin:0;padding:0;}
+html,body{background:#F5F6F8;font-family:'Noto Sans Devanagari','DM Sans',system-ui,sans-serif;color:#1A1E2A;overflow-x:hidden;-webkit-text-size-adjust:100%;}
+::-webkit-scrollbar{width:4px;} ::-webkit-scrollbar-thumb{background:#D1D5DB;border-radius:3px;}
+button{font-family:inherit;cursor:pointer;-webkit-tap-highlight-color:transparent;}
+img{max-width:100%;}
+
+/* ═══════════════ TOKENS ═══════════════ */
+:root{
+  --or:#FF7A00;--bl:#2B6EBD;
+  --orl:#FFF1E6;--orm:#FFE4CC;
+  --bll:#EBF3FC;--blm:#C9DFF5;
+  --gy:#F5F6F8;--gy2:#E5E7EB;
+  --tx:#1A1E2A;--tx2:#6B7280;
+  --sh:0 2px 10px rgba(0,0,0,0.07);
+  --sh-lg:0 8px 28px rgba(0,0,0,0.12);
+  --r-sm:10px;--r-md:14px;--r-lg:16px;
+}
+
+/* ═══════════════ KEYFRAMES ═══════════════ */
+@keyframes fadeUp{from{opacity:0;transform:translateY(18px)}to{opacity:1;transform:translateY(0)}}
+@keyframes scaleIn{from{opacity:0;transform:scale(0.92)}to{opacity:1;transform:scale(1)}}
+@keyframes popIn{from{opacity:0;transform:scale(0.85) translateY(6px)}to{opacity:1;transform:scale(1) translateY(0)}}
+@keyframes pageIn{from{opacity:0;transform:translateY(12px)}to{opacity:1;transform:translateY(0)}}
+@keyframes slideR{from{opacity:0;transform:translateX(-12px)}to{opacity:1;transform:translateX(0)}}
+@keyframes slideL{from{opacity:0;transform:translateX(12px)}to{opacity:1;transform:translateX(0)}}
+@keyframes blink{0%,100%{opacity:1}50%{opacity:0.25}}
+@keyframes typDot{0%,80%,100%{transform:translateY(0);opacity:0.3}40%{transform:translateY(-5px);opacity:1}}
+@keyframes ripple{0%{transform:scale(1);opacity:0.6}100%{transform:scale(2.6);opacity:0}}
+@keyframes bounce2{0%{opacity:0;transform:scale(0.4)}60%{transform:scale(1.2)}100%{opacity:1;transform:scale(1)}}
+@keyframes pulse{0%,100%{transform:scale(1)}50%{transform:scale(0.97)}}
+@keyframes tickIn{0%{transform:scale(0) rotate(-20deg)}70%{transform:scale(1.2)}100%{transform:scale(1)}}
+@keyframes glowOR{0%,100%{box-shadow:0 0 0 3px rgba(255,122,0,0.15)}50%{box-shadow:0 0 0 6px rgba(255,122,0,0.3)}}
+@keyframes orb{0%,100%{transform:translate(0,0)}50%{transform:translate(16px,-10px)}}
+@keyframes flashNum{0%{color:var(--tx)}50%{color:var(--or);transform:scale(1.06)}100%{color:var(--tx)}}
+
+.fade-up{animation:fadeUp 0.4s ease-out both;}
+.scale-in{animation:scaleIn 0.35s ease-out both;}
+.page-in{animation:pageIn 0.35s ease-out;}
+.msg-user{animation:slideL 0.22s ease-out;}
+.msg-bot{animation:slideR 0.22s ease-out;}
+
+/* ═══════════════ LAYOUT ═══════════════ */
+.page{display:none;min-height:100vh;flex-direction:column;}
+.page.active{display:flex;}
+.container{max-width:860px;width:100%;margin:0 auto;padding:0 20px;}
+
+/* ═══════════════ TOP NAV ═══════════════ */
+.topnav{
+  position:sticky;top:0;z-index:100;background:rgba(255,255,255,0.97);
+  backdrop-filter:blur(18px);border-bottom:1px solid var(--gy2);
+  padding:11px 20px;display:flex;align-items:center;gap:12px;
+  box-shadow:0 1px 6px rgba(0,0,0,0.06);
+}
+.logo-wrap{flex-shrink:0;}
+.stepper{flex:1;display:flex;align-items:center;justify-content:center;}
+.step-item{display:flex;flex-direction:column;align-items:center;gap:3px;}
+.step-dot{width:24px;height:24px;border-radius:50%;display:flex;align-items:center;justify-content:center;font-size:10px;font-weight:700;transition:all 0.4s;font-family:'DM Sans',sans-serif;border:2px solid var(--gy2);background:#F3F4F6;color:#9CA3AF;}
+.step-dot.done{background:var(--or);border-color:var(--or);color:#fff;}
+.step-dot.active{background:var(--orl);border-color:var(--or);color:var(--or);box-shadow:0 0 0 4px rgba(255,122,0,0.15);}
+.step-label{font-size:8.5px;color:var(--tx2);font-family:'DM Sans',sans-serif;white-space:nowrap;}
+.step-label.active{color:var(--or);font-weight:600;}
+.step-line{width:28px;height:2px;border-radius:1px;background:var(--gy2);margin:0 4px;margin-bottom:16px;flex-shrink:0;transition:background 0.5s;}
+.step-line.done{background:var(--or);}
+.free-badge{display:flex;align-items:center;gap:5px;border-radius:30px;padding:4px 11px;font-size:11px;font-weight:600;font-family:'DM Sans',sans-serif;background:var(--bll);color:var(--bl);border:1px solid var(--blm);flex-shrink:0;}
+.pill-dot{width:6px;height:6px;border-radius:50%;animation:blink 1.8s infinite;flex-shrink:0;}
+
+/* ═══════════════ CARDS ═══════════════ */
+.card{background:#fff;border:1.5px solid var(--gy2);border-radius:var(--r-lg);overflow:hidden;box-shadow:var(--sh);}
+
+/* ═══════════════ BIZ GRID ═══════════════ */
+.biz-grid{display:grid;grid-template-columns:repeat(4,1fr);gap:10px;margin-bottom:18px;}
+.biz-card{background:#fff;border:2px solid var(--gy2);border-radius:var(--r-md);padding:16px 10px;cursor:pointer;transition:all 0.22s;display:flex;flex-direction:column;align-items:center;gap:7px;position:relative;overflow:hidden;box-shadow:0 1px 4px rgba(0,0,0,0.05);}
+.biz-card:hover{transform:translateY(-2px);box-shadow:var(--sh-lg);}
+.biz-card.sel{animation:glowOR 2s ease-in-out infinite;}
+.biz-card .accent-top{position:absolute;top:0;left:0;right:0;height:3px;border-radius:14px 14px 0 0;display:none;}
+.biz-card.sel .accent-top{display:block;}
+.biz-card .check-badge{position:absolute;top:8px;right:8px;width:19px;height:19px;border-radius:50%;display:none;align-items:center;justify-content:center;font-size:10px;color:#fff;font-weight:700;animation:tickIn 0.3s ease-out;font-family:'DM Sans',sans-serif;}
+.biz-card.sel .check-badge{display:flex;}
+.biz-icon{font-size:30px;line-height:1;}
+.biz-label{font-size:12px;font-weight:700;text-align:center;line-height:1.3;font-family:'DM Sans',sans-serif;transition:color 0.2s;}
+.biz-sub{font-size:9.5px;color:var(--tx2);text-align:center;line-height:1.4;font-family:'DM Sans',sans-serif;}
+
+/* ═══════════════ SEL STRIP ═══════════════ */
+.sel-strip{border-radius:var(--r-md);padding:14px 18px;display:none;align-items:center;gap:12px;margin-bottom:10px;border:2px solid;}
+.sel-strip.show{display:flex;animation:scaleIn 0.35s ease-out;}
+.sel-tags{display:flex;flex-wrap:wrap;gap:6px;margin-top:5px;}
+.sel-tag{border-radius:20px;padding:3px 10px;font-size:10px;font-weight:600;font-family:'DM Sans',sans-serif;border:1px solid;}
+
+/* ═══════════════ LANG GRID ═══════════════ */
+.lang-grid{display:grid;grid-template-columns:1fr 1fr;gap:9px;margin-bottom:18px;}
+.lang-card{background:#fff;border:2px solid var(--gy2);border-radius:12px;padding:12px 13px;cursor:pointer;transition:all 0.22s;display:flex;align-items:center;gap:10px;position:relative;overflow:hidden;box-shadow:0 1px 3px rgba(0,0,0,0.05);}
+.lang-card:hover{transform:translateX(3px);box-shadow:0 4px 14px rgba(0,0,0,0.08);}
+.lang-card .left-bar{position:absolute;top:0;left:0;bottom:0;width:3px;display:none;}
+.lang-card.prim .left-bar{display:block;background:var(--or);}
+.lang-card.prim{border-color:var(--or);background:var(--orl);}
+.lang-card.ext{border-color:rgba(255,122,0,0.3);background:#FFFAF5;}
+.lang-flag{font-size:22px;flex-shrink:0;}
+.lang-name{font-size:14px;font-weight:700;color:var(--tx);transition:color 0.2s;}
+.lang-card.prim .lang-name{color:var(--or);}
+.lang-card.ext .lang-name{color:#92400E;}
+.lang-eng{font-size:9.5px;color:var(--tx2);font-family:'DM Sans',sans-serif;}
+.lang-region{font-size:9.5px;color:var(--tx2);margin-top:2px;font-family:'DM Sans',sans-serif;}
+.lang-btns{display:flex;flex-direction:column;gap:5px;flex-shrink:0;}
+.lang-btn{padding:4px 10px;border-radius:20px;font-size:10px;font-weight:700;cursor:pointer;font-family:'DM Sans',sans-serif;white-space:nowrap;border:1.5px solid var(--gy2);background:#fff;color:var(--tx2);transition:all 0.18s;}
+.lang-btn.prim-btn{border:2px solid var(--or);background:var(--or);color:#fff;box-shadow:0 2px 8px rgba(255,122,0,0.3);}
+.lang-btn.ext-btn{border-color:var(--or);background:var(--orl);color:var(--or);}
+.lang-summary{display:none;}
+.lang-summary.show{display:block;animation:scaleIn 0.35s ease-out;}
+.lang-chips{display:flex;flex-wrap:wrap;gap:7px;margin-top:8px;}
+.lang-chip{display:flex;align-items:center;gap:6px;background:#F9FAFB;border:1.5px solid var(--gy2);border-radius:20px;padding:5px 12px;}
+.lang-chip.primary-chip{background:var(--orl);border-color:var(--orm);}
+.chip-name{font-size:12.5px;font-weight:700;}
+.chip-badge{font-size:7.5px;color:var(--or);font-family:'DM Sans',sans-serif;font-weight:700;letter-spacing:0.06em;}
+
+/* ═══════════════ CTA / BOTTOM ═══════════════ */
+.cta-btn{width:100%;background:linear-gradient(135deg,#FF7A00,#FF5500);border:none;border-radius:12px;padding:13px 20px;color:#fff;font-weight:700;font-size:14px;cursor:pointer;font-family:inherit;transition:all 0.2s;display:flex;align-items:center;gap:8px;justify-content:center;box-shadow:0 6px 20px rgba(255,122,0,0.35);}
+.cta-btn:hover{transform:translateY(-2px);box-shadow:0 10px 28px rgba(255,122,0,0.45);}
+.cta-btn:active{transform:translateY(0);}
+.cta-btn:disabled{background:#E5E7EB;color:#9CA3AF;cursor:not-allowed;transform:none;box-shadow:none;}
+.bottom-bar{position:fixed;bottom:0;left:0;right:0;z-index:30;padding:12px 20px 16px;background:rgba(255,255,255,0.97);backdrop-filter:blur(16px);border-top:1px solid var(--gy2);box-shadow:0 -2px 12px rgba(0,0,0,0.06);}
+.cta-note{text-align:center;margin-top:7px;font-size:10px;color:var(--tx2);font-family:'DM Sans',sans-serif;}
+
+/* ═══════════════ HERO ═══════════════ */
+.page-hero{text-align:center;margin-bottom:26px;}
+.badge-pill{display:inline-flex;align-items:center;gap:6px;border-radius:30px;padding:5px 14px;font-size:11px;font-weight:600;margin-bottom:14px;font-family:'DM Sans',sans-serif;}
+.badge-pill.or{background:var(--orl);color:var(--or);border:1px solid var(--orm);}
+.badge-pill.bl{background:var(--bll);color:var(--bl);border:1px solid var(--blm);}
+h1.hero-h{font-family:'Playfair Display',serif;font-size:28px;font-weight:700;color:var(--tx);margin:0 0 9px;line-height:1.22;}
+h1.hero-h span{color:var(--or);}
+.hero-sub{font-size:13px;color:var(--tx2);line-height:1.75;}
+
+/* ═══════════════ BACK ROW ═══════════════ */
+.back-biz-row{display:flex;align-items:center;gap:10px;margin-bottom:20px;}
+.biz-badge{display:flex;align-items:center;gap:9px;border-radius:12px;padding:9px 14px;flex:1;box-shadow:var(--sh);}
+.biz-badge-check{width:20px;height:20px;border-radius:50%;background:var(--or);display:flex;align-items:center;justify-content:center;font-size:11px;color:#fff;font-family:'DM Sans',sans-serif;}
+.ghost-btn{background:#fff;border:1.5px solid var(--gy2);border-radius:9px;padding:7px 12px;color:var(--tx2);font-size:12px;cursor:pointer;font-family:inherit;transition:all 0.18s;display:flex;align-items:center;gap:5px;white-space:nowrap;}
+.ghost-btn:hover{border-color:#D1D5DB;background:#F9FAFB;}
+
+/* ═══════════════ DEMO HEADER ═══════════════ */
+.demo-header{position:sticky;top:0;z-index:100;background:rgba(255,255,255,0.97);backdrop-filter:blur(18px);border-bottom:1px solid var(--gy2);padding:10px 16px;display:flex;align-items:center;justify-content:space-between;gap:10px;box-shadow:0 1px 6px rgba(0,0,0,0.06);flex-wrap:wrap;}
+.demo-chips{display:flex;gap:6px;align-items:center;flex-wrap:wrap;}
+.demo-chip{display:flex;align-items:center;gap:5px;border-radius:20px;padding:3px 10px;font-size:10.5px;font-weight:600;border:1px solid;font-family:'DM Sans',sans-serif;}
+.demo-chip.or{background:var(--orl);color:var(--or);border-color:var(--orm);}
+.demo-chip.bl{background:var(--bll);color:var(--bl);border-color:var(--blm);}
+.demo-chip.gy{background:var(--gy);color:var(--tx2);border-color:var(--gy2);}
+.demo-live{font-size:10.5px;color:#16A34A;display:flex;align-items:center;gap:4px;font-family:'DM Sans',sans-serif;font-weight:600;margin-left:3px;}
+.live-dot{width:6px;height:6px;border-radius:50%;background:#22C55E;animation:blink 1.5s infinite;flex-shrink:0;}
+.demo-btns{display:flex;gap:6px;}
+.pause-btn{background:#fff;border:1.5px solid var(--gy2);border-radius:9px;padding:6px 12px;color:var(--tx2);font-size:11.5px;cursor:pointer;font-family:inherit;font-weight:600;transition:all 0.18s;display:flex;align-items:center;gap:4px;}
+.pause-btn.paused{background:var(--orl);border-color:var(--or);color:var(--or);}
+
+/* ═══════════════ DEMO STEP BAR ═══════════════ */
+.demo-stepbar{background:#fff;border-bottom:1px solid var(--gy2);display:flex;align-items:center;justify-content:center;padding:9px 10px 3px;position:sticky;top:57px;z-index:90;overflow-x:auto;}
+.dstep{display:flex;flex-direction:column;align-items:center;gap:3px;flex-shrink:0;}
+.dstep-dot{width:23px;height:23px;border-radius:50%;display:flex;align-items:center;justify-content:center;font-size:9.5px;font-weight:700;transition:all 0.4s;font-family:'DM Sans',sans-serif;border:2px solid var(--gy2);background:#F3F4F6;color:#9CA3AF;}
+.dstep-dot.done{background:var(--or);border-color:var(--or);color:#fff;}
+.dstep-dot.active{background:var(--orl);border-color:var(--or);color:var(--or);box-shadow:0 0 0 3px rgba(255,122,0,0.15);}
+.dstep-lbl{font-size:8.5px;color:var(--tx2);width:70px;text-align:center;line-height:1.3;transition:color 0.4s;font-family:'DM Sans',sans-serif;}
+.dstep-lbl.active{color:var(--or);font-weight:600;}
+.dstep-line{width:20px;height:2px;margin:0 2px;margin-bottom:20px;border-radius:1px;flex-shrink:0;background:var(--gy2);transition:background 0.5s;}
+.dstep-line.done{background:var(--or);}
+
+/* ═══════════════ DEMO MAIN WRAP ═══════════════ */
+.demo-wrap{display:flex;gap:16px;padding:14px 16px 90px;align-items:flex-start;justify-content:center;}
+
+/* ═══════════════ PHONE ═══════════════ */
+.phone-col{flex-shrink:0;}
+.phone-label{text-align:center;margin-bottom:7px;font-size:9.5px;color:var(--tx2);letter-spacing:0.1em;text-transform:uppercase;font-family:'DM Sans',sans-serif;font-weight:600;}
+.phone-shell{width:248px;border-radius:34px;padding:3px;background:linear-gradient(160deg,#374151,#1F2937,#111827);box-shadow:0 24px 60px rgba(0,0,0,0.2),0 6px 20px rgba(0,0,0,0.12);}
+.phone-screen{border-radius:31px;overflow:hidden;background:#E5DDD5;position:relative;}
+.phone-notch{position:absolute;top:0;left:50%;transform:translateX(-50%);width:60px;height:17px;background:#1F2937;border-radius:0 0 9px 9px;z-index:50;}
+.wa-statusbar{background:#075E54;padding:4px 13px 0;display:flex;justify-content:space-between;align-items:center;font-size:8.5px;color:rgba(255,255,255,0.85);font-family:'DM Sans',sans-serif;}
+.wa-header{background:#075E54;padding:5px 11px 9px;display:flex;align-items:center;gap:7px;}
+.wa-avatar{width:29px;height:29px;border-radius:50%;background:linear-gradient(135deg,#FF7A00,#FF5500);display:flex;align-items:center;justify-content:center;font-size:13px;flex-shrink:0;}
+.wa-name{font-size:11.5px;font-weight:700;color:#fff;line-height:1.1;font-family:'DM Sans',sans-serif;}
+.wa-status{font-size:8px;color:rgba(255,255,255,0.72);display:flex;align-items:center;gap:3px;margin-top:1px;font-family:'DM Sans',sans-serif;}
+.wa-online-dot{width:5px;height:5px;border-radius:50%;background:#25D366;animation:blink 2s infinite;flex-shrink:0;}
+.wa-chat{height:340px;overflow-y:auto;background:#E5DDD5;padding:6px 7px 5px;display:flex;flex-direction:column;gap:5px;scroll-behavior:smooth;}
+.wa-date{text-align:center;margin-bottom:3px;}
+.wa-date span{background:rgba(255,255,255,0.7);font-size:8px;padding:2px 8px;border-radius:7px;color:#777;font-family:'DM Sans',sans-serif;}
+.wa-bubble-wrap{display:flex;}
+.wa-bubble-wrap.user{justify-content:flex-end;}
+.wa-bubble{max-width:85%;border-radius:9px;padding:5px 8px 4px;box-shadow:0 1px 2px rgba(0,0,0,0.1);color:#111;}
+.wa-bubble.user{background:#DCF8C6;border-radius:9px 9px 1px 9px;}
+.wa-bubble.bot{background:#fff;border-radius:9px 9px 9px 1px;}
+.bubble-text{font-size:11px;line-height:1.55;font-family:'Noto Sans Devanagari','DM Sans',sans-serif;}
+.bubble-line{font-size:10.5px;line-height:1.6;white-space:pre;font-family:'Noto Sans Devanagari','DM Sans',sans-serif;}
+.bubble-time{font-size:8px;color:#aaa;text-align:right;margin-top:2px;display:flex;gap:3px;justify-content:flex-end;align-items:center;font-family:'DM Sans',sans-serif;}
+.tick-read{color:#34B7F1;font-size:10px;}
+.typing-bubble{background:#fff;border-radius:9px 9px 9px 1px;padding:8px 11px;display:flex;gap:4px;align-items:center;box-shadow:0 1px 2px rgba(0,0,0,0.1);width:fit-content;}
+.typing-dot{width:6px;height:6px;border-radius:50%;background:#bbb;}
+.typing-dot:nth-child(1){animation:typDot 1.35s ease-in-out infinite 0s;}
+.typing-dot:nth-child(2){animation:typDot 1.35s ease-in-out infinite 0.2s;}
+.typing-dot:nth-child(3){animation:typDot 1.35s ease-in-out infinite 0.4s;}
+.wa-inputbar{background:#F0F0F0;padding:5px 7px;display:flex;align-items:center;gap:6px;}
+.wa-inputfield{flex:1;background:#fff;border-radius:20px;padding:5px 10px;font-size:9.5px;color:#bbb;font-family:'DM Sans',sans-serif;}
+.wa-micbtn{width:30px;height:30px;border-radius:50%;background:#25D366;display:flex;align-items:center;justify-content:center;font-size:13px;flex-shrink:0;}
+
+/* ═══════════════ RIGHT PANEL ═══════════════ */
+.rpanel{flex:1;max-width:400px;min-width:0;display:flex;flex-direction:column;gap:11px;}
+.rpanel-scene{display:none;}
+.rpanel-scene.active{display:flex;flex-direction:column;gap:11px;animation:pageIn 0.35s ease-out;}
+
+/* Feature cards */
+.feat-grid{display:grid;grid-template-columns:1fr 1fr;gap:8px;}
+.feat-card{background:#fff;border:1.5px solid var(--gy2);border-radius:11px;padding:12px;box-shadow:0 1px 4px rgba(0,0,0,0.05);border-left:3px solid;}
+.feat-icon{font-size:19px;margin-bottom:4px;}
+.feat-title{font-size:11.5px;font-weight:700;color:var(--tx);margin-bottom:2px;font-family:'DM Sans',sans-serif;}
+.feat-sub{font-size:9.5px;color:var(--tx2);font-family:'DM Sans',sans-serif;}
+
+/* Promo box */
+.promo-box{background:linear-gradient(135deg,var(--orl),#fff);border:1.5px solid var(--orm);border-radius:var(--r-lg);padding:16px 17px;margin-bottom:11px;box-shadow:var(--sh);}
+
+/* Dashboard */
+.dash-header{padding:11px 15px;border-bottom:1px solid var(--gy2);display:flex;align-items:center;justify-content:space-between;}
+.dash-title{font-weight:700;font-size:13.5px;color:var(--tx);}
+.dash-sub{font-size:9px;color:var(--tx2);margin-top:1px;font-family:'DM Sans',sans-serif;}
+.dash-live{display:flex;align-items:center;gap:4px;font-size:10.5px;color:#16A34A;font-family:'DM Sans',sans-serif;font-weight:600;}
+.dash-stats{display:grid;grid-template-columns:1fr 1fr;}
+.stat-cell{padding:11px 14px;border-bottom:1px solid var(--gy2);border-right:1px solid var(--gy2);}
+.stat-label{font-size:9px;color:var(--tx2);margin-bottom:2px;font-family:'DM Sans',sans-serif;}
+.stat-value{font-family:'Playfair Display',serif;font-size:20px;font-weight:700;color:var(--tx);transition:all 0.3s;}
+.stat-value.flash{animation:flashNum 0.8s ease-out;}
+.new-order-alert{margin:11px;border-radius:11px;padding:11px 12px;background:#F0FDF4;border:2px solid #86EFAC;animation:popIn 0.4s ease-out;}
+.alert-row{display:flex;align-items:center;gap:7px;margin-bottom:7px;}
+.alert-dot-wrap{width:9px;height:9px;border-radius:50%;background:#22C55E;position:relative;flex-shrink:0;}
+.alert-ripple{position:absolute;inset:0;border-radius:50%;background:#22C55E;animation:ripple 1.5s ease-out infinite;}
+.alert-title{font-size:12.5px;font-weight:700;color:#16A34A;}
+.alert-time{font-size:9px;color:var(--tx2);margin-left:auto;font-family:'DM Sans',sans-serif;}
+.alert-name{font-weight:700;font-size:12.5px;color:var(--tx);font-family:'DM Sans',sans-serif;}
+.alert-items{font-size:11px;color:var(--tx2);margin-top:2px;}
+.alert-foot{display:flex;align-items:center;justify-content:space-between;margin-top:9px;}
+.alert-price{font-size:17px;font-weight:700;color:var(--or);font-family:'Playfair Display',serif;}
+.accept-btn{padding:6px 14px;background:#22C55E;border:none;border-radius:8px;color:#fff;font-size:11.5px;cursor:pointer;font-weight:700;font-family:'DM Sans',sans-serif;box-shadow:0 3px 10px rgba(34,197,94,0.35);}
+.mini-chart{padding:0 13px 12px;}
+.chart-label{font-size:9.5px;color:var(--tx2);margin-bottom:6px;font-family:'DM Sans',sans-serif;}
+.chart-bars{display:flex;align-items:flex-end;gap:3px;height:48px;}
+.chart-bar{flex:1;display:flex;flex-direction:column;align-items:center;gap:2px;}
+.chart-bar-fill{width:100%;border-radius:2px 2px 0 0;}
+.chart-bar-lbl{font-size:7px;color:var(--tx2);font-family:'DM Sans',sans-serif;}
+
+/* KDS */
+.kds-header{background:linear-gradient(90deg,#FF7A00,#FF5500);padding:11px 14px;display:flex;align-items:center;gap:9px;}
+.kds-title{font-weight:700;font-size:13px;color:#fff;font-family:'DM Sans',sans-serif;}
+.kds-sub{font-size:9px;color:rgba(255,255,255,0.8);}
+.kds-live{background:rgba(255,255,255,0.25);border-radius:20px;padding:2px 9px;font-size:9.5px;color:#fff;font-weight:700;font-family:'DM Sans',sans-serif;}
+.kds-ticket{background:var(--orl);border:2px solid var(--orm);border-radius:11px;padding:11px 12px;animation:popIn 0.4s ease-out;}
+.kds-oid{font-weight:700;font-size:13.5px;color:var(--or);font-family:'DM Sans',sans-serif;}
+.kds-new-badge{background:var(--or);color:#fff;font-size:8.5px;font-weight:800;padding:2px 9px;border-radius:20px;font-family:'DM Sans',sans-serif;}
+.kds-customer{font-size:10.5px;color:var(--tx2);margin:5px 0;}
+.kds-divider{border:none;border-top:1px dashed var(--orm);margin:7px 0;}
+.kds-item{display:flex;align-items:center;gap:7px;margin-bottom:6px;font-size:12px;}
+.kds-checkbox{width:14px;height:14px;border-radius:4px;border:2px solid var(--or);flex-shrink:0;}
+.kds-item-name{flex:1;font-family:'DM Sans',sans-serif;}
+.kds-item-qty{color:var(--or);font-weight:700;font-family:'DM Sans',sans-serif;}
+.kds-ready-btn{width:100%;margin-top:9px;padding:9px;background:var(--or);border:none;border-radius:8px;color:#fff;font-weight:700;font-size:12.5px;cursor:pointer;font-family:inherit;box-shadow:0 4px 12px rgba(255,122,0,0.4);}
+.kds-counts{display:flex;gap:6px;margin-top:9px;}
+.kds-count{flex:1;border:1.5px solid var(--gy2);border-radius:8px;padding:7px;text-align:center;}
+.kds-count-lbl{font-size:8.5px;color:var(--tx2);margin-bottom:2px;font-family:'DM Sans',sans-serif;}
+.kds-count-val{font-size:17px;font-weight:700;font-family:'Playfair Display',serif;}
+.auto-msg-note{padding:11px 13px;display:flex;gap:9px;align-items:center;background:#F0FDF4;border-color:#BBF7D0;}
+.auto-msg-text{font-size:11.5px;color:#166534;line-height:1.7;}
+
+/* Success */
+.success-card{padding:22px 18px;text-align:center;background:linear-gradient(145deg,var(--orl),#fff);}
+.success-emoji{font-size:48px;animation:bounce2 0.7s ease-out;line-height:1;display:block;}
+.success-title{font-family:'Playfair Display',serif;font-size:22px;font-weight:700;color:var(--or);margin:11px 0 4px;}
+.success-sub{font-size:12.5px;color:var(--tx2);line-height:1.85;margin-bottom:16px;}
+.success-stats{display:grid;grid-template-columns:repeat(3,1fr);gap:7px;margin-bottom:16px;}
+.sstat{background:var(--gy);border:1.5px solid var(--gy2);border-radius:9px;padding:9px 4px;}
+.sstat-val{font-family:'Playfair Display',serif;font-size:16px;font-weight:700;}
+.sstat-lbl{font-size:9px;color:var(--tx2);margin-top:2px;font-family:'DM Sans',sans-serif;}
+.india-note{padding:12px 14px;display:flex;gap:9px;align-items:center;background:var(--bll);border-color:var(--blm);}
+.india-text{font-size:12px;color:#1E3A5F;line-height:1.75;}
+
+/* Progress bar */
+.progress-bar-wrap{position:fixed;bottom:0;left:0;right:0;z-index:30;padding:8px 16px 12px;background:rgba(255,255,255,0.97);backdrop-filter:blur(16px);border-top:1px solid var(--gy2);box-shadow:0 -2px 10px rgba(0,0,0,0.06);}
+.prog-row{display:flex;justify-content:space-between;align-items:center;margin-bottom:5px;}
+.prog-dots{display:flex;gap:5px;align-items:center;flex-wrap:wrap;}
+.prog-dot{width:7px;height:7px;border-radius:4px;background:var(--gy2);transition:all 0.4s;flex-shrink:0;}
+.prog-dot.active{background:var(--or);width:20px;}
+.prog-dot.done{background:var(--orm);}
+.prog-step-lbl{font-size:9.5px;color:var(--tx2);margin-left:4px;font-family:'DM Sans',sans-serif;font-weight:600;}
+.prog-status{font-size:9.5px;color:var(--tx2);display:flex;align-items:center;gap:5px;font-family:'DM Sans',sans-serif;font-weight:600;}
+.prog-status-dot{width:6px;height:6px;border-radius:50%;background:#22C55E;animation:blink 2s infinite;flex-shrink:0;}
+.prog-status-dot.paused{background:#EF4444;animation:none!important;}
+.prog-track{height:4px;background:var(--gy2);border-radius:2px;}
+.prog-fill{height:100%;border-radius:2px;background:linear-gradient(90deg,#FF7A00,#FF5500);transition:width 0.075s linear;box-shadow:0 0 8px rgba(255,122,0,0.4);}
+
+/* Blob */
+.blob{position:fixed;border-radius:50%;pointer-events:none;z-index:0;}
+
+/* ═══════════════ RESPONSIVE ═══════════════ */
+
+/* Tablet: 600–900px */
+@media(max-width:900px){
+  .biz-grid{grid-template-columns:repeat(4,1fr);gap:8px;}
+  .demo-wrap{gap:12px;padding:12px 14px 88px;}
+  .phone-shell{width:230px;}
+  .wa-chat{height:310px;}
+}
+
+@media(max-width:768px){
+  /* Nav: hide full stepper, show compact */
+  .free-badge{display:none;}
+  .topnav{padding:10px 14px;gap:8px;}
+  .step-label{display:none;}
+  .step-line{width:20px;}
+  .step-dot{width:22px;height:22px;font-size:9px;}
+
+  /* Hero */
+  h1.hero-h{font-size:24px;}
+  .hero-sub{font-size:12.5px;}
+  .page-hero{margin-bottom:20px;}
+
+  /* Biz grid: 2x4 */
+  .biz-grid{grid-template-columns:repeat(2,1fr);}
+  .biz-icon{font-size:26px;}
+  .biz-label{font-size:12px;}
+
+  /* Sel strip: vertical */
+  .sel-strip{flex-direction:column;align-items:flex-start;gap:9px;}
+
+  /* Lang grid: 1 col */
+  .lang-grid{grid-template-columns:1fr;}
+  .lang-card:hover{transform:none;}
+
+  /* Demo: stack phone + panel */
+  .demo-wrap{flex-direction:column;align-items:center;padding:12px 14px 88px;}
+  .phone-col{width:100%;display:flex;flex-direction:column;align-items:center;}
+  .phone-shell{width:260px;}
+  .wa-chat{height:290px;}
+  .rpanel{max-width:100%;width:100%;}
+
+  /* Demo header: compact */
+  .demo-header{padding:8px 12px;}
+  .demo-btns .ghost-btn span,.demo-btns .ghost-btn:not(.pause-btn){display:none;}
+  #restart-btn-text{display:none;}
+  .ghost-btn.restart-btn::after{content:'↩';}
+
+  /* Step bar: scroll */
+  .demo-stepbar{top:52px;justify-content:flex-start;padding-left:12px;}
+  .dstep-lbl{font-size:7.5px;width:62px;}
+  .dstep-line{width:14px;}
+
+  /* Bottom bar */
+  .bottom-bar{padding:10px 14px 14px;}
+  .cta-btn{font-size:13px;padding:12px 18px;}
+}
+
+@media(max-width:480px){
+  /* Nav: logo only + stepper dots only */
+  .topnav{padding:9px 12px;}
+  .step-line{width:14px;margin:0 2px;margin-bottom:0;}
+
+  /* Hero */
+  h1.hero-h{font-size:21px;}
+  .container{padding:0 14px;}
+
+  /* Biz: 2 col */
+  .biz-grid{gap:7px;}
+  .biz-card{padding:13px 8px;}
+  .biz-icon{font-size:24px;}
+  .biz-label{font-size:11.5px;}
+  .biz-sub{font-size:9px;}
+
+  /* Sel strip */
+  .sel-strip{padding:12px 14px;}
+  .sel-tags .sel-tag{font-size:9.5px;padding:2px 8px;}
+
+  /* Lang */
+  .lang-card{padding:10px 11px;}
+  .lang-name{font-size:13px;}
+  .lang-btns{flex-direction:row;gap:4px;}
+  .lang-btn{padding:4px 8px;font-size:9.5px;}
+
+  /* Phone */
+  .phone-shell{width:240px;}
+  .wa-chat{height:270px;}
+  .bubble-text{font-size:10.5px;}
+  .bubble-line{font-size:10px;}
+
+  /* Feat grid: 1 col on very small */
+  .feat-grid{grid-template-columns:1fr 1fr;}
+
+  /* Demo header */
+  .demo-header{flex-wrap:nowrap;overflow-x:auto;}
+  .demo-chips{flex-wrap:nowrap;}
+  .d-extra-chip-el{display:none!important;}
+
+  /* Progress */
+  .prog-step-lbl{display:none;}
+  .progress-bar-wrap{padding:7px 12px 11px;}
+
+  /* Back row */
+  .back-biz-row{flex-wrap:wrap;}
+  .biz-badge{min-width:0;}
+
+  /* Stepbar */
+  .dstep-lbl{font-size:7px;width:56px;}
+  .dstep-line{width:10px;}
+
+  /* Success */
+  .success-emoji{font-size:42px;}
+  .success-title{font-size:20px;}
+}
+
+@media(max-width:360px){
+  h1.hero-h{font-size:19px;}
+  .phone-shell{width:220px;}
+  .wa-chat{height:250px;}
+  .feat-grid{grid-template-columns:1fr;}
+  .success-stats{grid-template-columns:repeat(3,1fr);}
+  .biz-grid{grid-template-columns:repeat(2,1fr);}
+}
+</style>
+</head>
+<body>
+
+<!-- ══════════ SVG LOGO (reusable) ══════════ -->
+<template id="logo-tpl">
+<svg width="148" height="38" viewBox="0 0 168 44" fill="none" xmlns="http://www.w3.org/2000/svg">
+  <rect x="1.5" y="1.5" width="37" height="32" rx="7.5" stroke="#2B6EBD" stroke-width="3"/>
+  <path d="M9 34 L14 41 L21 34" fill="none" stroke="#2B6EBD" stroke-width="3" stroke-linejoin="round"/>
+  <path d="M12 10 L19 20 L26 10" stroke="#FF7A00" stroke-width="2.8" stroke-linecap="round" stroke-linejoin="round" fill="none"/>
+  <line x1="19" y1="20" x2="19" y2="28" stroke="#FF7A00" stroke-width="2.8" stroke-linecap="round"/>
+  <text x="44" y="31" font-family="'DM Sans',sans-serif" font-weight="700" font-size="24" fill="#FF7A00">Yalla</text>
+  <text x="106" y="31" font-family="'DM Sans',sans-serif" font-weight="700" font-size="24" fill="#2B6EBD">push</text>
+</svg>
+</template>
+
+<!-- ══════════ PAGE 1: BUSINESS TYPE ══════════ -->
+<div class="page active" id="page-biz">
+  <div class="blob" style="top:-10%;right:-5%;width:360px;height:360px;background:radial-gradient(circle,rgba(255,122,0,0.06),transparent 65%);animation:orb 10s ease-in-out infinite;"></div>
+  <div class="blob" style="bottom:-8%;left:-4%;width:300px;height:300px;background:radial-gradient(circle,rgba(43,110,189,0.05),transparent 65%);"></div>
+  <nav class="topnav">
+    <div class="logo-wrap" id="logo-biz"></div>
+    <div class="stepper" id="stepper-biz"></div>
+    <div class="free-badge"><span class="pill-dot" style="background:#22C55E;"></span>Free Trial</div>
+  </nav>
+  <div style="flex:1;position:relative;z-index:5;padding:26px 0 110px;">
+    <div class="container">
+      <div class="page-hero fade-up">
+        <div class="badge-pill or"><span class="pill-dot" style="background:var(--or);"></span>चरण 1 / 3 · Business Setup</div>
+        <h1 class="hero-h">आपका Business<br><span>किस type का है?</span></h1>
+        <p class="hero-sub">AI आपके business के अनुसार <strong style="color:var(--tx);">automatically customize</strong> होगा</p>
+      </div>
+      <div class="biz-grid" id="biz-grid"></div>
+      <div class="sel-strip" id="sel-strip">
+        <span id="ss-icon" style="font-size:36px;flex-shrink:0;"></span>
+        <div style="flex:1;min-width:0;">
+          <div id="ss-title" style="font-size:13px;font-weight:700;margin-bottom:5px;font-family:'DM Sans',sans-serif;"></div>
+          <div class="sel-tags" id="ss-tags"></div>
+        </div>
+      </div>
+    </div>
+  </div>
+  <div class="bottom-bar">
+    <div class="container">
+      <button class="cta-btn" id="cta-biz" disabled onclick="goLang()">ऊपर से Business Type चुनें 👆</button>
+      <p class="cta-note">✓ Free Trial · कोई Credit Card नहीं · 5 मिनट में Setup</p>
+    </div>
+  </div>
+</div>
+
+<!-- ══════════ PAGE 2: LANGUAGE ══════════ -->
+<div class="page" id="page-lang">
+  <div class="blob" style="top:-12%;right:-5%;width:380px;height:380px;background:radial-gradient(circle,rgba(43,110,189,0.06),transparent 65%);"></div>
+  <nav class="topnav">
+    <div class="logo-wrap" id="logo-lang"></div>
+    <div class="stepper" id="stepper-lang"></div>
+    <div class="free-badge"><span class="pill-dot" style="background:#22C55E;"></span>Free Trial</div>
+  </nav>
+  <div style="flex:1;position:relative;z-index:5;padding:20px 0 110px;">
+    <div class="container">
+      <div class="back-biz-row">
+        <button class="ghost-btn" onclick="goBiz()">← वापस</button>
+        <div class="biz-badge" id="biz-badge-lang"></div>
+      </div>
+      <div class="page-hero fade-up" style="text-align:left;margin-bottom:20px;">
+        <div class="badge-pill bl" style="display:inline-flex;">🌐 चरण 2 / 3 · Language</div>
+        <h1 class="hero-h">AI किस भाषा में<br><span>बात करेगा?</span></h1>
+        <div style="display:flex;gap:16px;font-size:12px;color:var(--tx2);flex-wrap:wrap;">
+          <span>🟠 <strong style="color:var(--tx);">Primary</strong> — मुख्य</span>
+          <span>⚪ <strong style="color:var(--tx);">+ Extra</strong> — अतिरिक्त</span>
+        </div>
+      </div>
+      <div class="lang-grid" id="lang-grid"></div>
+      <div class="card lang-summary" id="lang-summary">
+        <div style="padding:13px 16px;">
+          <div style="font-size:10.5px;color:var(--tx2);margin-bottom:8px;font-family:'DM Sans',sans-serif;">✅ Language Configuration:</div>
+          <div class="lang-chips" id="lang-chips"></div>
+        </div>
+      </div>
+    </div>
+  </div>
+  <div class="bottom-bar">
+    <div class="container">
+      <button class="cta-btn" id="cta-lang" disabled onclick="goDemo()">Primary Language चुनें 👆</button>
+      <p class="cta-note">Settings से बाद में बदल सकते हैं</p>
+    </div>
+  </div>
+</div>
+
+<!-- ══════════ PAGE 3: DEMO ══════════ -->
+<div class="page" id="page-demo">
+  <div class="blob" style="top:-8%;right:-4%;width:340px;height:340px;background:radial-gradient(circle,rgba(255,122,0,0.06),transparent 65%);"></div>
+  <div class="blob" style="bottom:-6%;left:-3%;width:280px;height:280px;background:radial-gradient(circle,rgba(43,110,189,0.05),transparent 65%);"></div>
+
+  <div class="demo-header">
+    <div id="logo-demo"></div>
+    <div class="demo-chips">
+      <div class="demo-chip or" id="d-biz-chip"></div>
+      <div class="demo-chip bl" id="d-lang-chip"></div>
+      <div class="demo-chip gy d-extra-chip-el" id="d-extra-chip" style="display:none;"></div>
+      <div class="demo-live"><span class="live-dot"></span><span id="d-scene-lbl">चल रहा है...</span></div>
+    </div>
+    <div class="demo-btns">
+      <button class="ghost-btn restart-btn" onclick="goLang2()" title="दोबारा Setup">
+        <span id="restart-btn-text">↩ Setup</span>
+      </button>
+      <button class="pause-btn" id="pause-btn" onclick="togglePause()">⏸ रोकें</button>
+    </div>
+  </div>
+
+  <div class="demo-stepbar" id="demo-stepbar"></div>
+
+  <div class="demo-wrap">
+    <!-- Phone -->
+    <div class="phone-col">
+      <div class="phone-label">Customer का Phone</div>
+      <div class="phone-shell">
+        <div class="phone-screen">
+          <div class="phone-notch"></div>
+          <div class="wa-statusbar">
+            <span style="font-weight:600;padding-top:1px;" id="wa-time">9:41 AM</span>
+            <span style="padding-top:1px;">●●● 🔋</span>
+          </div>
+          <div class="wa-header">
+            <span style="font-size:12px;color:rgba(255,255,255,0.6);">←</span>
+            <div class="wa-avatar" id="wa-biz-icon">🍛</div>
+            <div style="flex:1;min-width:0;">
+              <div class="wa-name">Spice Garden</div>
+              <div class="wa-status"><span class="wa-online-dot"></span><span id="wa-lang-sub">Online · YallaPush</span></div>
+            </div>
+          </div>
+          <div class="wa-chat" id="wa-chat">
+            <div class="wa-date"><span>आज</span></div>
+          </div>
+          <div class="wa-inputbar">
+            <div class="wa-inputfield">Message</div>
+            <div class="wa-micbtn">🎤</div>
+          </div>
+        </div>
+      </div>
+    </div>
+
+    <!-- Right panel -->
+    <div class="rpanel">
+      <!-- Scene 0-1: Intro + Features -->
+      <div class="rpanel-scene active" id="scene-intro">
+        <div class="promo-box">
+          <div style="display:flex;align-items:center;gap:10px;margin-bottom:9px;">
+            <span id="promo-biz-icon" style="font-size:28px;">🍛</span>
+            <div style="font-family:'Playfair Display',serif;font-size:16px;font-weight:700;color:var(--tx);line-height:1.2;" id="promo-h">
+              Restaurant के लिए<br><span style="color:var(--or);">WhatsApp से Order!</span>
+            </div>
+          </div>
+          <div style="font-size:12px;color:var(--tx2);line-height:1.8;">
+            ग्राहक बिना app के, सीधे <strong id="promo-lang-name" style="color:var(--or);">🇮🇳 हिंदी</strong> में order करते हैं।
+          </div>
+        </div>
+        <div class="feat-grid" id="feat-grid"></div>
+      </div>
+
+      <!-- Scene 2: Dashboard -->
+      <div class="rpanel-scene" id="scene-dash">
+        <div class="card">
+          <div class="dash-header">
+            <div>
+              <div class="dash-title">📊 आपका Dashboard</div>
+              <div class="dash-sub" id="dash-biz-sub">Spice Garden · Restaurant</div>
+            </div>
+            <div class="dash-live"><span class="live-dot"></span>Live</div>
+          </div>
+          <div class="dash-stats">
+            <div class="stat-cell" style="border-right:1px solid var(--gy2);">
+              <div class="stat-label">आज की कमाई</div>
+              <div class="stat-value" id="stat-rev">₹47,820</div>
+            </div>
+            <div class="stat-cell">
+              <div class="stat-label">कुल Orders</div>
+              <div class="stat-value" id="stat-cnt">142</div>
+            </div>
+          </div>
+          <div class="new-order-alert">
+            <div class="alert-row">
+              <div class="alert-dot-wrap"><div class="alert-ripple"></div></div>
+              <span class="alert-title">🔔 नया Order!</span>
+              <span class="alert-time">अभी</span>
+            </div>
+            <div class="alert-name">#ORD-4521 — Priya Sharma</div>
+            <div class="alert-items">🍛 Butter Chicken + 🫓 Naan ×2</div>
+            <div class="alert-foot">
+              <span class="alert-price">₹487</span>
+              <button class="accept-btn">✓ Accept</button>
+            </div>
+          </div>
+          <div class="mini-chart">
+            <div class="chart-label">Revenue (₹ हज़ार)</div>
+            <div class="chart-bars" id="chart-bars"></div>
+          </div>
+        </div>
+      </div>
+
+      <!-- Scene 3: Kitchen KDS -->
+      <div class="rpanel-scene" id="scene-kds">
+        <div class="card">
+          <div class="kds-header">
+            <span style="font-size:20px;">👨‍🍳</span>
+            <div style="flex:1;"><div class="kds-title">Kitchen Display System</div><div class="kds-sub">रसोई का Order Board</div></div>
+            <div class="kds-live">LIVE</div>
+          </div>
+          <div style="padding:11px;">
+            <div class="kds-ticket">
+              <div style="display:flex;justify-content:space-between;align-items:center;margin-bottom:5px;">
+                <span class="kds-oid">#ORD-4521</span><span class="kds-new-badge">NEW</span>
+              </div>
+              <div class="kds-customer" id="kds-customer">Priya Sharma · WhatsApp · हिंदी</div>
+              <hr class="kds-divider"/>
+              <div class="kds-item"><div class="kds-checkbox"></div><span class="kds-item-name">🍛 Butter Chicken</span><span class="kds-item-qty">×1</span></div>
+              <div class="kds-item"><div class="kds-checkbox"></div><span class="kds-item-name">🫓 Garlic Naan</span><span class="kds-item-qty">×2</span></div>
+              <button class="kds-ready-btn">✓ तैयार हो गया</button>
+            </div>
+            <div class="kds-counts">
+              <div class="kds-count" style="background:var(--orl);"><div class="kds-count-lbl">Pending</div><div class="kds-count-val" style="color:var(--or);">4</div></div>
+              <div class="kds-count" style="background:#F0FDF4;"><div class="kds-count-lbl">Ready</div><div class="kds-count-val" style="color:#16A34A;">2</div></div>
+              <div class="kds-count" style="background:var(--gy);"><div class="kds-count-lbl">Done</div><div class="kds-count-val" style="color:var(--tx2);">136</div></div>
+            </div>
+          </div>
+        </div>
+        <div class="card auto-msg-note">
+          <span style="font-size:19px;">📱</span>
+          <div class="auto-msg-text">Accept होते ही <strong id="kds-lang-note">🇮🇳 हिंदी</strong> में auto-WhatsApp जाता है!</div>
+        </div>
+      </div>
+
+      <!-- Scene 4: Success -->
+      <div class="rpanel-scene" id="scene-win">
+        <div class="card success-card">
+          <span class="success-emoji">🎉</span>
+          <div class="success-title">₹487 आपके Account में!</div>
+          <div class="success-sub" id="success-sub">Restaurant · हिंदी<br><strong style="color:var(--tx);">Zero Commission · 100% आपका!</strong></div>
+          <div class="success-stats">
+            <div class="sstat"><div class="sstat-val" style="color:var(--or);">₹0</div><div class="sstat-lbl">Commission</div></div>
+            <div class="sstat"><div class="sstat-val" style="color:#2B6EBD;">3s</div><div class="sstat-lbl">Response</div></div>
+            <div class="sstat"><div class="sstat-val" style="color:#16A34A;">100%</div><div class="sstat-lbl">Profit</div></div>
+          </div>
+          <button class="cta-btn" style="animation:pulse 2.5s ease-in-out infinite;" onclick="window.open('https://yallapush.com','_blank')">🚀 Free Trial — yallapush.com →</button>
+        </div>
+        <div class="card india-note">
+          <span style="font-size:20px;">🇮🇳</span>
+          <div class="india-text"><strong>7.5 करोड़</strong> restaurants × <strong style="color:#2B6EBD;">53 करोड़ WhatsApp users</strong> = आपका market!</div>
+        </div>
+      </div>
+    </div><!-- /rpanel -->
+  </div><!-- /demo-wrap -->
+
+  <!-- Progress -->
+  <div class="progress-bar-wrap">
+    <div class="prog-row">
+      <div class="prog-dots" id="prog-dots"></div>
+      <div class="prog-status">
+        <span class="prog-status-dot" id="prog-status-dot"></span>
+        <span id="prog-status-txt">Auto Demo</span>
+      </div>
+    </div>
+    <div class="prog-track"><div class="prog-fill" id="prog-fill" style="width:0%;"></div></div>
+  </div>
+</div>
+
+<script>
+/* ══════════ DATA ══════════ */
+const BIZ=[
+  {icon:'🍛',label:'Restaurant',    sub:'Multi-cuisine / Dhaba',  color:'#FF7A00',bg:'#FFF1E6',border:'#FFE4CC'},
+  {icon:'☕',label:'Café / Bakery', sub:'Coffee Shop, Patisserie',color:'#7C3AED',bg:'#F5F0FF',border:'#DDD0FA'},
+  {icon:'🍕',label:'Fast Food',     sub:'QSR / Food Court',       color:'#E11D48',bg:'#FFF0F3',border:'#FCCDD8'},
+  {icon:'🏨',label:'Hotel Kitchen', sub:'Room Service & Dining',  color:'#2B6EBD',bg:'#EBF3FC',border:'#C9DFF5'},
+  {icon:'🥘',label:'Cloud Kitchen', sub:'Delivery Only',          color:'#059669',bg:'#ECFDF5',border:'#A7F3D0'},
+  {icon:'🍱',label:'Tiffin Service',sub:'Home Meals / Dabba',     color:'#D97706',bg:'#FFFBEB',border:'#FDE68A'},
+  {icon:'🍦',label:'Dessert Shop',  sub:'Ice Cream, Sweets',      color:'#DB2777',bg:'#FDF2F8',border:'#FBCFE8'},
+  {icon:'🥗',label:'Salad & Juice', sub:'Health Food Bar',        color:'#65A30D',bg:'#F7FEE7',border:'#D9F99D'},
+];
+const LANGS=[
+  {flag:'🇮🇳',name:'हिंदी',  eng:'Hindi',   regions:'UP · MP · Bihar · Delhi'},
+  {flag:'🇬🇧',name:'English',eng:'English', regions:'Pan India · Metro Cities'},
+  {flag:'🟠', name:'मराठी',  eng:'Marathi', regions:'Maharashtra · Goa'},
+  {flag:'🔵', name:'தமிழ்',  eng:'Tamil',   regions:'Tamil Nadu · Puducherry'},
+  {flag:'🟡', name:'తెలుగు', eng:'Telugu',  regions:'Andhra · Telangana'},
+  {flag:'🔴', name:'ಕನ್ನಡ',  eng:'Kannada', regions:'Karnataka'},
+  {flag:'🟢', name:'ગુજરાતી',eng:'Gujarati',regions:'Gujarat · Surat'},
+  {flag:'🟣', name:'বাংলা',  eng:'Bengali', regions:'West Bengal · Bangladesh'},
+];
+const CHAT=[
+  {from:'user',text:'भैया, क्या आज Butter Chicken मिलेगा? 😊'},
+  {from:'bot', lines:['नमस्ते! 🙏 हाँ, आज का Menu:','','🍛 Butter Chicken  ₹349','🫓 Garlic Naan      ₹69','🍚 Chicken Biryani ₹399','🥛 Mango Lassi     ₹129','','क्या order करें? 😊']},
+  {from:'user',text:'1 Butter Chicken + 2 Naan भेजो 🙏'},
+  {from:'bot', lines:['✅ आपका Order:','','🍛 Butter Chicken ×1  ₹349','🫓 Garlic Naan ×2      ₹138','────────────────────','💰 Total: ₹487','⏱️  समय: ~20 मिनट','','Confirm? हाँ लिखें ✓']},
+  {from:'user',text:'हाँ ✓'},
+  {from:'bot', lines:['🎉 Order Confirmed!','Order ID: #ORD-4521','','💳 Payment:','   spicegarden@upi','   या Cash on Delivery','','Ready होने पर SMS आएगा 🍽️']},
+];
+const FEATS=[
+  {icon:'⚡',t:'3 सेकंड में जवाब',  d:'AI instant reply',        c:'#FF7A00'},
+  {icon:'🗣️',t:'हर भाषा में',        d:'Hindi, English, Tamil',   c:'#2B6EBD'},
+  {icon:'📊',t:'Live Dashboard',    d:'Real-time orders',         c:'#7C3AED'},
+  {icon:'💳',t:'UPI + Cash सब',     d:'All payment modes',        c:'#059669'},
+  {icon:'🔔',t:'Kitchen को Alert',  d:'Instant notification',     c:'#E11D48'},
+  {icon:'🎯',t:'Zero Commission',   d:'100% profit आपका',         c:'#D97706'},
+];
+const DEMO_STEPS=['ग्राहक message','AI जवाब','Dashboard','Kitchen','पैसे! 🎉'];
+const E={MSG1:4,TYPE1:13,MSG2:27,MSG3:46,TYPE2:54,MSG4:68,MSG5:86,TYPE3:93,MSG6:104,DASH:118,REVUP:126,KDS:154,WIN:184,LOOP:220};
+
+/* ══════════ STATE ══════════ */
+let selBiz=null,primaryLang=null,extraLangs=[],config=null;
+let tick=0,paused=false,revVal=47820,cntVal=142,timerID=null;
+let lastScene=-1,chatMsgShown=[];
+
+/* ══════════ LOGO HELPER ══════════ */
+function injectLogo(elId){
+  const el=document.getElementById(elId);
+  const tpl=document.getElementById('logo-tpl');
+  el.innerHTML='';
+  el.appendChild(tpl.content.cloneNode(true));
+}
+
+/* ══════════ STEPPER ══════════ */
+function buildStepper(el,active){
+  const labels=['Business','Language','Demo'];
+  el.innerHTML='';
+  labels.forEach((l,i)=>{
+    const item=document.createElement('div');item.className='step-item';
+    const dot=document.createElement('div');dot.className='step-dot'+(i<active?' done':i===active?' active':'');dot.textContent=i<active?'✓':i+1;
+    const lbl=document.createElement('div');lbl.className='step-label'+(i===active?' active':'');lbl.textContent=l;
+    item.appendChild(dot);item.appendChild(lbl);el.appendChild(item);
+    if(i<labels.length-1){const line=document.createElement('div');line.className='step-line'+(i<active?' done':'');el.appendChild(line);}
+  });
+}
+
+/* ══════════ BIZ GRID ══════════ */
+function buildBizGrid(){
+  const grid=document.getElementById('biz-grid');grid.innerHTML='';
+  BIZ.forEach((b,i)=>{
+    const card=document.createElement('div');card.className='biz-card';card.style.cssText='opacity:0;transition:opacity 0.2s,transform 0.22s,border-color 0.22s,background 0.22s;';
+    card.innerHTML=`<div class="accent-top" style="background:${b.color};"></div><div class="check-badge" style="background:${b.color};">✓</div><div class="biz-icon">${b.icon}</div><div class="biz-label">${b.label}</div><div class="biz-sub">${b.sub}</div>`;
+    card.onclick=()=>selectBiz(i);
+    grid.appendChild(card);
+    setTimeout(()=>card.style.opacity='1',i*85);
+  });
+}
+function selectBiz(i){
+  selBiz=i;
+  document.querySelectorAll('.biz-card').forEach((c,j)=>{
+    const b=BIZ[j];c.classList.toggle('sel',j===i);
+    c.style.borderColor=j===i?b.color:'var(--gy2)';
+    c.style.background=j===i?b.bg:'#fff';
+    c.querySelector('.biz-label').style.color=j===i?b.color:'var(--tx)';
+  });
+  const b=BIZ[i];
+  const strip=document.getElementById('sel-strip');
+  strip.style.background=`linear-gradient(135deg,${b.bg},#fff)`;strip.style.borderColor=b.border;
+  document.getElementById('ss-icon').textContent=b.icon;
+  const title=document.getElementById('ss-title');title.style.color=b.color;title.textContent=`${b.label} के लिए YallaPush:`;
+  const tags=document.getElementById('ss-tags');tags.innerHTML='';
+  ['WhatsApp Bot','Smart Menu','Live Dashboard','Kitchen Alerts','UPI Payment','Hindi Support'].forEach(f=>{
+    tags.innerHTML+=`<span class="sel-tag" style="background:rgba(255,255,255,0.85);border-color:${b.border};color:${b.color};">✓ ${f}</span>`;
+  });
+  strip.classList.add('show');
+  const cta=document.getElementById('cta-biz');cta.disabled=false;
+  cta.textContent=`${b.icon} ${b.label} — अगला चरण →`;
+}
+
+/* ══════════ LANG GRID ══════════ */
+function buildLangGrid(){
+  const grid=document.getElementById('lang-grid');grid.innerHTML='';
+  LANGS.forEach((l,i)=>{
+    const card=document.createElement('div');card.className='lang-card';card.id=`lcard-${i}`;
+    card.style.cssText='opacity:0;transition:opacity 0.2s,transform 0.22s,border-color 0.22s,background 0.22s;';
+    card.innerHTML=`
+      <div class="left-bar"></div>
+      <div class="lang-flag">${l.flag}</div>
+      <div style="flex:1;min-width:0;">
+        <div style="display:flex;align-items:baseline;gap:6px;"><span class="lang-name">${l.name}</span><span class="lang-eng">${l.eng}</span></div>
+        <div class="lang-region">${l.regions}</div>
+      </div>
+      <div class="lang-btns">
+        <button class="lang-btn" onclick="pickPrimary(${i})">Primary</button>
+        <button class="lang-btn ext-toggle" onclick="toggleExtra(${i})">+Extra</button>
+      </div>`;
+    grid.appendChild(card);
+    setTimeout(()=>card.style.opacity='1',i*75);
+  });
+}
+function updateLangCards(){
+  LANGS.forEach((_,i)=>{
+    const card=document.getElementById(`lcard-${i}`);if(!card)return;
+    const isPrim=primaryLang===i,isExt=extraLangs.includes(i);
+    card.classList.toggle('prim',isPrim);card.classList.toggle('ext',isExt&&!isPrim);
+    const btns=card.querySelectorAll('.lang-btn');
+    btns[0].classList.toggle('prim-btn',isPrim);btns[0].textContent=isPrim?'✓ Primary':'Primary';
+    const extBtn=card.querySelector('.ext-toggle');
+    if(extBtn){extBtn.classList.toggle('ext-btn',isExt);extBtn.textContent=isExt?'✓ Extra':'+Extra';extBtn.style.display=isPrim?'none':'block';}
+  });
+  updateLangSummary();updateLangCTA();
+}
+function pickPrimary(i){primaryLang=i;extraLangs=extraLangs.filter(x=>x!==i);updateLangCards();}
+function toggleExtra(i){if(primaryLang===i)return;extraLangs.includes(i)?extraLangs=extraLangs.filter(x=>x!==i):extraLangs.push(i);updateLangCards();}
+function updateLangSummary(){
+  const s=document.getElementById('lang-summary'),chips=document.getElementById('lang-chips');
+  if(primaryLang===null){s.classList.remove('show');return;}
+  chips.innerHTML='';[primaryLang,...extraLangs].forEach(i=>{
+    const l=LANGS[i],isPrim=i===primaryLang;
+    chips.innerHTML+=`<div class="lang-chip${isPrim?' primary-chip':''}">
+      <span style="font-size:16px;">${l.flag}</span>
+      <span class="chip-name" style="color:${isPrim?'var(--or)':'var(--tx)'};">${l.name}</span>
+      ${isPrim?'<span class="chip-badge">PRIMARY</span>':''}
+    </div>`;
+  });
+  s.classList.add('show');
+}
+function updateLangCTA(){
+  const cta=document.getElementById('cta-lang');
+  if(primaryLang===null){cta.disabled=true;cta.textContent='Primary Language चुनें 👆';return;}
+  const l=LANGS[primaryLang];
+  cta.disabled=false;
+  cta.textContent=`${l.flag} ${l.name}${extraLangs.length?` + ${extraLangs.length} more`:''} — Live Demo देखें 🎬`;
+}
+
+/* ══════════ NAVIGATION ══════════ */
+function showPage(id){document.querySelectorAll('.page').forEach(p=>p.classList.remove('active'));document.getElementById(id).classList.add('active');window.scrollTo(0,0);}
+function goBiz(){showPage('page-biz');injectLogo('logo-biz');buildStepper(document.getElementById('stepper-biz'),0);}
+function goLang(){
+  if(selBiz===null)return;
+  showPage('page-lang');injectLogo('logo-lang');
+  buildStepper(document.getElementById('stepper-lang'),1);
+  buildLangGrid();primaryLang=null;extraLangs=[];updateLangCards();
+  const b=BIZ[selBiz];
+  const badge=document.getElementById('biz-badge-lang');
+  badge.style.cssText=`background:linear-gradient(135deg,${b.bg},#fff);border:2px solid ${b.border};`;
+  badge.innerHTML=`<span style="font-size:20px;">${b.icon}</span><div style="flex:1;"><div style="font-size:9.5px;color:var(--tx2);font-family:'DM Sans',sans-serif;">चुना हुआ Business</div><div style="font-size:13px;font-weight:700;color:${b.color};font-family:'DM Sans',sans-serif;">${b.label}</div></div><div class="biz-badge-check">✓</div>`;
+}
+function goLang2(){stopDemo();goLang();}
+function goDemo(){
+  if(primaryLang===null)return;
+  config={biz:BIZ[selBiz],lang:LANGS[primaryLang],extra:extraLangs.map(i=>LANGS[i])};
+  showPage('page-demo');initDemo();
+}
+
+/* ══════════ DEMO INIT ══════════ */
+function initDemo(){
+  const {biz,lang,extra}=config;
+  injectLogo('logo-demo');
+  document.getElementById('d-biz-chip').textContent=`${biz.icon} ${biz.label}`;
+  document.getElementById('d-lang-chip').textContent=`${lang.flag} ${lang.name}`;
+  const ec=document.getElementById('d-extra-chip');
+  if(extra.length>0){ec.style.display='flex';ec.textContent=`+${extra.length}`;} else ec.style.display='none';
+  document.getElementById('wa-biz-icon').textContent=biz.icon;
+  document.getElementById('wa-lang-sub').textContent=`Online · YallaPush · ${lang.name}`;
+  document.getElementById('promo-biz-icon').textContent=biz.icon;
+  document.getElementById('promo-lang-name').textContent=`${lang.flag} ${lang.name}`;
+  document.getElementById('promo-h').innerHTML=`${biz.label} के लिए<br><span style="color:var(--or);">WhatsApp से Order!</span>`;
+  document.getElementById('kds-customer').textContent=`Priya Sharma · WhatsApp · ${lang.name}`;
+  document.getElementById('kds-lang-note').textContent=`${lang.flag} ${lang.name}`;
+  document.getElementById('success-sub').innerHTML=`${biz.icon} ${biz.label} · ${lang.flag} ${lang.name}<br><strong style="color:var(--tx);">Zero Commission · 100% आपका!</strong>`;
+  document.getElementById('dash-biz-sub').textContent=`Spice Garden · ${biz.label}`;
+  buildFeats();buildChart();buildDemoStepBar();buildProgDots();
+  tick=0;revVal=47820;cntVal=142;paused=false;lastScene=-1;chatMsgShown=[];
+  document.getElementById('wa-chat').innerHTML='<div class="wa-date"><span>आज</span></div>';
+  document.getElementById('stat-rev').textContent='₹47,820';
+  document.getElementById('stat-cnt').textContent='142';
+  const pb=document.getElementById('pause-btn');pb.classList.remove('paused');pb.textContent='⏸ रोकें';
+  document.getElementById('prog-status-dot').classList.remove('paused');
+  document.getElementById('prog-status-txt').textContent='Auto Demo';
+  startDemo();
+}
+function buildFeats(){
+  const g=document.getElementById('feat-grid');g.innerHTML='';
+  FEATS.forEach((f,i)=>{
+    const d=document.createElement('div');d.className='feat-card';
+    d.style.cssText=`border-left-color:${f.c};animation:popIn 0.3s ease-out ${i*0.07}s both;`;
+    d.innerHTML=`<div class="feat-icon">${f.icon}</div><div class="feat-title">${f.t}</div><div class="feat-sub">${f.d}</div>`;
+    g.appendChild(d);
+  });
+}
+function buildChart(){
+  const c=document.getElementById('chart-bars');c.innerHTML='';
+  [30,48,35,62,55,78,88,67,75,89,96,100].forEach((v,i)=>{
+    c.innerHTML+=`<div class="chart-bar"><div class="chart-bar-fill" style="height:${v}%;background:${i>=10?'var(--or)':i>=8?'var(--orm)':'var(--gy2)'}"></div><div class="chart-bar-lbl">${i+9}h</div></div>`;
+  });
+}
+function buildDemoStepBar(){
+  const bar=document.getElementById('demo-stepbar');bar.innerHTML='';
+  DEMO_STEPS.forEach((s,i)=>{
+    const item=document.createElement('div');item.className='dstep';
+    item.innerHTML=`<div class="dstep-dot" id="dsdot-${i}">${i+1}</div><div class="dstep-lbl" id="dslbl-${i}">${s}</div>`;
+    bar.appendChild(item);
+    if(i<DEMO_STEPS.length-1){const line=document.createElement('div');line.className='dstep-line';line.id=`dsline-${i}`;bar.appendChild(line);}
+  });
+}
+function buildProgDots(){
+  const pd=document.getElementById('prog-dots');pd.innerHTML='';
+  DEMO_STEPS.forEach((_,i)=>{const d=document.createElement('div');d.className='prog-dot';d.id=`pdot-${i}`;pd.appendChild(d);});
+  const lbl=document.createElement('span');lbl.className='prog-step-lbl';lbl.id='prog-step-lbl';pd.appendChild(lbl);
+}
+
+/* ══════════ DEMO LOOP ══════════ */
+function startDemo(){if(timerID)clearInterval(timerID);timerID=setInterval(demoTick,75);}
+function stopDemo(){if(timerID){clearInterval(timerID);timerID=null;}}
+function togglePause(){
+  paused=!paused;
+  const btn=document.getElementById('pause-btn'),dot=document.getElementById('prog-status-dot'),txt=document.getElementById('prog-status-txt');
+  btn.classList.toggle('paused',paused);btn.textContent=paused?'▶ चालू':'⏸ रोकें';
+  dot.classList.toggle('paused',paused);txt.textContent=paused?'रुका है':'Auto Demo';
+}
+function demoTick(){
+  if(paused)return;
+  tick=tick>=E.LOOP?0:tick+1;
+  if(tick===0){resetDemo();return;}
+  updateClock();updateChat();updateScene();updateProgress();
+}
+function resetDemo(){
+  revVal=47820;cntVal=142;chatMsgShown=[];lastScene=-1;
+  document.getElementById('wa-chat').innerHTML='<div class="wa-date"><span>आज</span></div>';
+  document.getElementById('stat-rev').textContent='₹47,820';
+  document.getElementById('stat-cnt').textContent='142';
+  showScene(0);
+}
+function updateClock(){
+  const t=new Date();document.getElementById('wa-time').textContent=t.toLocaleTimeString('en-IN',{hour:'2-digit',minute:'2-digit'});
+}
+const MSG_TICKS=[E.MSG1,E.MSG2,E.MSG3,E.MSG4,E.MSG5,E.MSG6];
+const TYPE_START=[E.TYPE1,E.TYPE2,E.TYPE3],TYPE_END=[E.MSG2,E.MSG4,E.MSG6];
+function updateChat(){
+  const chat=document.getElementById('wa-chat');
+  const now=new Date().toLocaleTimeString('en-IN',{hour:'2-digit',minute:'2-digit'});
+  MSG_TICKS.forEach((mt,i)=>{
+    if(tick>=mt&&!chatMsgShown[i]){
+      chatMsgShown[i]=true;const m=CHAT[i];const isU=m.from==='user';
+      const wrap=document.createElement('div');wrap.className=`wa-bubble-wrap${isU?' user':''}`;
+      wrap.innerHTML=`<div class="wa-bubble ${isU?'user':'bot'}">
+        ${m.text?`<div class="bubble-text">${m.text}</div>`:m.lines.map(l=>`<div class="bubble-line" style="font-weight:${l.startsWith('✅')||l.startsWith('💰')||l.startsWith('🎉')?700:400};color:${l.startsWith('💰')?'#075E54':l.startsWith('─')?'#ccc':'#111'};">${l||'\u00A0'}</div>`).join('')}
+        <div class="bubble-time">${now}${isU?'<span class="tick-read">✓✓</span>':''}</div>
+      </div>`;
+      wrap.classList.add(isU?'msg-user':'msg-bot');chat.appendChild(wrap);chat.scrollTop=chat.scrollHeight;
+    }
+  });
+  const existingT=document.getElementById('typing-indicator');
+  let showT=false;TYPE_START.forEach((ts,i)=>{if(tick>=ts&&tick<TYPE_END[i])showT=true;});
+  if(showT&&!existingT){
+    const tw=document.createElement('div');tw.className='wa-bubble-wrap msg-bot';tw.id='typing-indicator';
+    tw.innerHTML=`<div class="typing-bubble"><div class="typing-dot"></div><div class="typing-dot"></div><div class="typing-dot"></div></div>`;
+    chat.appendChild(tw);chat.scrollTop=chat.scrollHeight;
+  } else if(!showT&&existingT) existingT.remove();
+}
+function showScene(sc){
+  if(sc===lastScene)return;lastScene=sc;
+  document.querySelectorAll('.rpanel-scene').forEach(s=>s.classList.remove('active'));
+  document.getElementById(['scene-intro','scene-intro','scene-dash','scene-kds','scene-win'][sc]).classList.add('active');
+  DEMO_STEPS.forEach((_,i)=>{
+    const dot=document.getElementById(`dsdot-${i}`),lbl=document.getElementById(`dslbl-${i}`),line=document.getElementById(`dsline-${i}`);
+    if(!dot)return;
+    dot.classList.toggle('done',sc>i);dot.classList.toggle('active',sc===i);dot.textContent=sc>i?'✓':i+1;
+    lbl.classList.toggle('active',sc===i);if(line)line.classList.toggle('done',sc>i);
+  });
+  document.getElementById('d-scene-lbl').textContent=['ग्राहक message करता है','AI तुरंत जवाब देता है','आपका Dashboard','Kitchen को Order','पैसे आपके! 🎉'][sc];
+}
+function updateScene(){
+  let sc=0;if(tick>=E.MSG3)sc=1;if(tick>=E.DASH)sc=2;if(tick>=E.KDS)sc=3;if(tick>=E.WIN)sc=4;
+  showScene(sc);
+  if(tick===E.REVUP){
+    revVal+=487;cntVal+=1;
+    const rv=document.getElementById('stat-rev'),cv=document.getElementById('stat-cnt');
+    rv.textContent='₹'+revVal.toLocaleString('en-IN');cv.textContent=cntVal;
+    rv.classList.add('flash');setTimeout(()=>rv.classList.remove('flash'),900);
+  }
+}
+function updateProgress(){
+  const pct=Math.round(tick/E.LOOP*100);document.getElementById('prog-fill').style.width=pct+'%';
+  let sc=0;if(tick>=E.MSG3)sc=1;if(tick>=E.DASH)sc=2;if(tick>=E.KDS)sc=3;if(tick>=E.WIN)sc=4;
+  DEMO_STEPS.forEach((_,i)=>{
+    const d=document.getElementById(`pdot-${i}`);if(!d)return;
+    d.classList.toggle('active',i===sc);d.classList.toggle('done',i<sc);d.style.width=i===sc?'20px':'7px';
+  });
+  const sl=document.getElementById('prog-step-lbl');if(sl)sl.textContent=DEMO_STEPS[sc];
+}
+
+/* ══════════ BOOT ══════════ */
+injectLogo('logo-biz');
+buildStepper(document.getElementById('stepper-biz'),0);
+buildBizGrid();
+</script>
+</body>
+</html>
